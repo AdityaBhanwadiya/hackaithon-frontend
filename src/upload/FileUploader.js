@@ -1,56 +1,57 @@
 import React, { useState } from 'react';
 import { BlobServiceClient } from '@azure/storage-blob';
-import './FileUploader.css';
+import './FileUploader.css'; // Import the CSS file
+import SuccessPage from '../success/SuccessPage';
 
-function FileUploader({ onUploadSuccess }) {
-  const [selectedFile, setSelectedFile] = useState(null);
+function FileUploader() {
+  const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-
-  const sasToken = "sp=cwl&st=2025-03-22T22:19:20Z&se=2025-03-23T06:19:20Z&sv=2024-11-04&sr=c&sig=WoTR4RK7uW3XTH%2FhEc6DuzT0bhOMzbl4x04PTien8iU%3D";
-  const storageAccountName = "newincomingblobsstorage";
-  const containerName = "newblobstorage";
+  const [uploadSuccess, setUploadSuccess] = useState(false); // State to track upload success
 
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
-    }
+    setFile(e.target.files[0]);
   };
 
-  const handleUpload = async (e) => {
-    e.preventDefault();
-
-    if (!selectedFile) {
-      alert('Please select a file first.');
-      return;
-    }
+  const handleUpload = async () => {
+    if (!file) return alert("Please select a file");
 
     setIsUploading(true);
 
     try {
-      const blobServiceClient = new BlobServiceClient(
-        `https://${storageAccountName}.blob.core.windows.net?${sasToken}`
+      // Step 1: Fetch SAS token from Azure Function
+      const res = await fetch("https://azure-hackathon-fa.azurewebsites.net/api/generateToken");
+      const { sasToken, accountName, containerName } = await res.json();
+
+      // Step 2: Use the token to create BlobServiceClient
+      const blobService = new BlobServiceClient(
+        `https://${accountName}.blob.core.windows.net?${sasToken}`
       );
-      const containerClient = blobServiceClient.getContainerClient(containerName);
-      const blockBlobClient = containerClient.getBlockBlobClient(selectedFile.name);
 
-      await blockBlobClient.uploadBrowserData(selectedFile, {
-        blobHTTPHeaders: { blobContentType: selectedFile.type },
-      });
+      const containerClient = blobService.getContainerClient(containerName);
+      const blobClient = containerClient.getBlockBlobClient(file.name);
 
-      alert('File uploaded successfully!');
-      onUploadSuccess(); // Call the callback function to indicate success
+      // Step 3: Upload file
+      await blobClient.uploadData(file);
+
+      alert("File uploaded successfully!");
+      setUploadSuccess(true); // Set success state to true
     } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Failed to upload file.');
+      console.error("Upload failed:", error);
+      alert("Failed to upload file.");
     } finally {
       setIsUploading(false);
     }
   };
 
+  // If upload is successful, render the SuccessPage
+  if (uploadSuccess) {
+    return <SuccessPage />;
+  }
+
   return (
     <div className="container">
       <h1>Upload Your Document</h1>
-      <form onSubmit={handleUpload} className="form-inline justify-content-center">
+      <div className="form-group">
         <label className="custom-file-upload">
           Choose File
           <input
@@ -58,19 +59,18 @@ function FileUploader({ onUploadSuccess }) {
             className="form-control-file"
             onChange={handleFileChange}
             accept="image/*,application/pdf"
-            required
           />
         </label>
-        <div className="form-group mb-3">
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={isUploading}
-          >
-            {isUploading ? 'Uploading...' : 'Upload Document'}
-          </button>
-        </div>
-      </form>
+      </div>
+      <div className="form-group">
+        <button
+          className="btn btn-primary"
+          onClick={handleUpload}
+          disabled={isUploading}
+        >
+          {isUploading ? "Uploading..." : "Upload Document"}
+        </button>
+      </div>
       {isUploading && <div className="loader"></div>}
     </div>
   );
