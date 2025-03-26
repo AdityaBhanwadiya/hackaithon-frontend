@@ -27,7 +27,7 @@ body {
     margin: 80px auto;
     transition: transform 0.3s ease, background 0.3s ease;
     overflow: hidden; 
-  }  
+  }
   
   .container:hover {
     box-shadow: 0 120px 100px rgba(0, 0, 0, 0.15);
