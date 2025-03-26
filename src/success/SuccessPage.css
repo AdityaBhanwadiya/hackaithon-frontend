@@ -18,7 +18,7 @@ body {
   
   .success-container {
     max-width: 600px;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    background: linear-gradient(to top right left bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
