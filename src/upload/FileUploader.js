@@ -1,28 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BlobServiceClient } from '@azure/storage-blob';
-import './FileUploader.css'; // Import the CSS file
+import './FileUploader.css';
 import SuccessPage from '../success/SuccessPage';
+import useSignalRStatus from '../hooks/useSignalRStatus';
 
 function FileUploader() {
   const [file, setFile] = useState(null);
+  const [previewURL, setPreviewURL] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false); // State to track upload success
+  const [isScanning, setIsScanning] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const status = useSignalRStatus();
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    if (selectedFile) {
+      const preview = URL.createObjectURL(selectedFile);
+      setPreviewURL(preview);
+    }
   };
 
   const handleUpload = async () => {
     if (!file) return alert("Please select a file");
 
     setIsUploading(true);
+    setIsScanning(true);
 
     try {
-      // Step 1: Fetch SAS token from Azure Function
+      // Fetch SAS token from Azure Function
       const res = await fetch("https://azure-hackathon-fa.azurewebsites.net/api/generateToken");
       const { sasToken, accountName, containerName } = await res.json();
 
-      // Step 2: Use the token to create BlobServiceClient
+      // Create BlobServiceClient with SAS token
       const blobService = new BlobServiceClient(
         `https://${accountName}.blob.core.windows.net?${sasToken}`
       );
@@ -30,11 +40,9 @@ function FileUploader() {
       const containerClient = blobService.getContainerClient(containerName);
       const blobClient = containerClient.getBlockBlobClient(file.name);
 
-      // Step 3: Upload file
+      // Upload file
       await blobClient.uploadData(file);
-
-      alert("File uploaded successfully!");
-      setUploadSuccess(true); // Set success state to true
+      console.log("File uploaded successfully!");
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Failed to upload file.");
@@ -43,13 +51,24 @@ function FileUploader() {
     }
   };
 
-  // If upload is successful, render the SuccessPage
-  if (uploadSuccess) {
+  useEffect(() => {
+    if (status === "Wrapping things up.....") {
+      setIsScanning(false);
+      // Wait a couple of seconds to let the user see the final status message
+      const timer = setTimeout(() => {
+        setShowSuccess(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
+
+  // Render the SuccessPage only if showSuccess is true.
+  if (showSuccess) {
     return <SuccessPage />;
   }
 
   return (
-    <div className="container">
+    <div className="container no-scroll">
       <h1>Upload Your Document</h1>
       <div className="form-group">
         <label className="custom-file-upload">
@@ -62,7 +81,36 @@ function FileUploader() {
           />
         </label>
       </div>
-      <div className="form-group">
+
+      {previewURL && (
+        <div className="preview">
+          <p>Preview:</p>
+          <div className="preview-wrapper">
+            {file.type === "application/pdf" ? (
+              <embed
+                src={previewURL}
+                width="100%"
+                height="200px"
+                type="application/pdf"
+              />
+            ) : (
+              <img
+                src={previewURL}
+                alt="Preview"
+                style={{ maxWidth: "100%", height: "350px" }}
+              />
+            )}
+            {/* Scanner Effect */}
+            {isScanning && <div className="scanner-overlay"></div>}
+          </div>
+        </div>
+      )}
+      
+      {status && (
+        <p className="status-message">{status}</p>
+      )}
+
+      <div className="upload-section">
         <button
           className="btn btn-primary"
           onClick={handleUpload}
@@ -71,7 +119,6 @@ function FileUploader() {
           {isUploading ? "Uploading..." : "Upload Document"}
         </button>
       </div>
-      {isUploading && <div className="loader"></div>}
     </div>
   );
 }

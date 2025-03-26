@@ -9,6 +9,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
   }
   
   @keyframes gradientMove {
@@ -25,6 +26,7 @@ body {
     text-align: center;
     margin: 80px auto;
     transition: transform 0.3s ease, background 0.3s ease;
+    overflow: hidden; 
   }
   
   .container:hover {
@@ -83,19 +85,90 @@ body {
     background: linear-gradient(to right, #0056b3, #00008B);
     animation: gradientMove 10s ease infinite;
   }
+  .preview-section {
+    margin-top: 1rem;
+    border: 1px solid #ddd;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
   
   .loader {
-    display: none;
+    margin-top: 1rem;
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
+    border-top: 4px solid #007bff;
     border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    animation: spin 1s linear infinite;
-    margin: 20px auto;
+    width: 30px;
+    height: 30px;
+    animation: spin 0.6s linear infinite;
+    margin-left: auto;
+    margin-right: auto;
   }
   
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+  
+img,
+embed {
+  border-radius: 4px;
+  margin-top: 1rem;
+  max-width: 100%;
+}
+.preview-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  height: auto;
+}
+
+.scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 0, 0, 0.2); /* Semi-transparent red overlay */
+  overflow: hidden;
+}
+
+.scanner-overlay::before {
+  content: "";
+  position: absolute;
+  top: -100%; /* Start above the preview */
+  left: 0;
+  width: 100%;
+  height: 20px; /* Height of the red scanning bar */
+  background: rgba(255, 0, 0, 0.8); /* Bright red scanning bar */
+  animation: scanner 2s linear infinite; /* Animation for scanning */
+}
+
+@keyframes scanner {
+  0% {
+    top: -100%; /* Start above the preview */
+  }
+  50% {
+    top: 50%; /* Move to the middle */
+  }
+  100% {
+    top: 100%; /* Move below the preview */
+  }
+}
+
+.status-message {
+  margin-top: 1rem;
+  color: #ffffff;
+  font-weight: 500;
+  font-style: italic;
+  font-family: 'Courier New', Courier, monospace;
+  white-space: pre-wrap;
+  animation: fadeInOut 3s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(10px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}

@@ -1,21 +1,30 @@
-import React from 'react';
-import './SuccessPage.css'; // Assuming you move the CSS into a separate file
+import React, { useState, useEffect } from 'react';
+import Confetti from 'react-confetti';
+import './SuccessPage.css';
 
 function SuccessPage() {
+  // Get the window dimensions for the confetti effect
+  const { innerWidth: width, innerHeight: height } = window;
+
+  // State to control the confetti effect
+  const [showConfetti, setShowConfetti] = useState(true);
+
+  useEffect(() => {
+    // Stop the confetti after 3 seconds
+    const timer = setTimeout(() => {
+      setShowConfetti(false);
+    }, 5000); // 3000ms = 3 seconds
+
+    return () => clearTimeout(timer); // Cleanup the timer
+  }, []);
+
   return (
     <div className="success-container">
-      <h1>Processing Complete</h1>
-      <p>Your document has been processed successfully and saved!</p>
+      {/* Confetti Effect */}
+      {showConfetti && <Confetti width={width} height={height} numberOfPieces={500} gravity={0.5} />}
 
-      {/* Button for Azure Blob Storage */}
-      <a
-        href="https://portal.azure.com/#view/Microsoft_Azure_Storage/ContainerMenuBlade/~/overview/storageAccountId/%2Fsubscriptions%2F04cc0711-48e2-41a6-a1fd-3fefa6e37a6a%2FresourceGroups%2FDataBricks%2Fproviders%2FMicrosoft.Storage%2FstorageAccounts%2Fmhccnadata/path/mhccnacontainer/etag/%220x8DCC6CD602DA7CC%22/defaultEncryptionScope/%24account-encryption-key/denyEncryptionScopeOverride~/false/defaultId//publicAccessVal/None"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn btn-custom"
-      >
-        Go to Azure
-      </a>
+      <h1>Uploaded Successfully</h1>
+      <p>Your document has been uploaded successfully and is now processing!</p>
 
       {/* Button for Salesforce Org */}
       <a
@@ -24,7 +33,7 @@ function SuccessPage() {
         rel="noopener noreferrer"
         className="btn btn-custom"
       >
-        Go to Salesforce
+        Edit Data
       </a>
 
       {/* Button to return to Home */}
