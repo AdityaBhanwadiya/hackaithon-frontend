@@ -29,7 +29,7 @@ function FileUploader() {
 
     try {
       // Fetch SAS token from Azure Function
-      const res = await fetch("https://azure-hackathon-fa.azurewebsites.net/api/generateToken");
+      const res = await fetch("https://hackaithon-fa-premium.azurewebsites.net/api/generateToken");
       const { sasToken, accountName, containerName } = await res.json();
 
       // Create BlobServiceClient with SAS token

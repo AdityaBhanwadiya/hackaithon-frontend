@@ -7,7 +7,7 @@ export default function useSignalRStatus() {
   useEffect(() => {
     const connect = async () => {
       try {
-        const res = await fetch("https://azure-hackathon-fa.azurewebsites.net/api/negotiate", {
+        const res = await fetch("https://hackaithon-fa-premium.azurewebsites.net/api/negotiate", {
           method: "POST"
         });
         console.log("Response from negotiate:", res);
